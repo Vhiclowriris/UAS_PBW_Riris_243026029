@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Transaksi - UMKM Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { font-size: 1.5rem; }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+        .navbar a:hover { background: rgba(255,255,255,0.3); }
+        
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .items-section {
+            margin-top: 2rem;
+        }
+        .item-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn:hover { opacity: 0.9; }
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert.show { display: block; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>📝 Input Transaksi</h1>
+        <div>
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem;">Tambah Transaksi Baru</h2>
+            
+            <div id="alert" class="alert"></div>
+
+            <form id="transactionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nomor_transaksi">Nomor Transaksi</label>
+                        <input type="text" id="nomor_transaksi" required placeholder="TRX-2024-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggal_transaksi">Tanggal & Waktu</label>
+                        <input type="datetime-local" id="tanggal_transaksi" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="outlet_id">Outlet</label>
+                        <select id="outlet_id" required>
+                            <option value="">Pilih Outlet</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_id">Kasir</label>
+                        <select id="user_id" required>
+                            <option value="">Pilih Kasir</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="metode_pembayaran">Metode Pembayaran</label>
+                    <select id="metode_pembayaran" required>
+                        <option value="">Pilih Metode</option>
+                        <option value="tunai">Tunai</option>
+                        <option value="debit">Debit/Kartu Kredit</option>
+                        <option value="e-wallet">E-Wallet (GoPay/OVO/Dana)</option>
+                    </select>
+                </div>
+
+                <div class="items-section">
+                    <h3 style="margin-bottom: 1rem;">Detail Produk</h3>
+                    <div id="itemsContainer"></div>
+                    <button type="button" class="btn btn-secondary" onclick="addItemRow()" style="margin-top: 1rem;">
+                        + Tambah Produk
+                    </button>
+                </div>
+
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label>Total Amount</label>
+                    <input type="number" id="total_amount" readonly style="background: #e9ecef; font-weight: bold; font-size: 1.2rem;">
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success">💾 Simpan Transaksi</button>
+                    <button type="reset" class="btn btn-danger" style="margin-left: 1rem;">🔄 Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let products = [];
+        let itemIndex = 0;
+
+        // Check auth
+        if (!Auth.requireAuth()) {
+            window.location.href = 'login.html';
+        }
+
+        // Load data awal
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDropdowns();
+            addItemRow(); // Tambah 1 row kosong
+        });
+
+        // Load dropdown options
+        async function loadDropdowns() {
+            try {
+                // Load outlets
+                const outletsRes = await fetch(`${API_CONFIG.BASE_URL}/transactions/outlets`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const outletsData = await outletsRes.json();
+                
+                const outletSelect = document.getElementById('outlet_id');
+                outletsData.data.forEach(outlet => {
+                    const option = document.createElement('option');
+                    option.value = outlet.id;
+                    option.textContent = `${outlet.nama_outlet} (${outlet.kota})`;
+                    outletSelect.appendChild(option);
+                });
+
+                // Load kasir
+                const cashiersRes = await fetch(`${API_CONFIG.BASE_URL}/transactions/cashiers`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const cashiersData = await cashiersRes.json();
+                
+                const cashierSelect = document.getElementById('user_id');
+                cashiersData.data.forEach(kasir => {
+                    const option = document.createElement('option');
+                    option.value = kasir.id;
+                    option.textContent = kasir.username;
+                    cashierSelect.appendChild(option);
+                });
+
+                // Load products
+                const productsRes = await fetch(`${API_CONFIG.BASE_URL}/transactions/products`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const productsData = await productsRes.json();
+                products = productsData.data;
+
+            } catch (error) {
+                showAlert('Gagal memuat data: ' + error.message, 'error');
+            }
+        }
+
+        // Add item row
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.dataset.index = itemIndex;
+
+            let productOptions = '<option value="">Pilih Produk</option>';
+            products.forEach(p => {
+                productOptions += `<option value="${p.id}" data-harga="${p.harga_jual}">${p.nama_produk} (Rp ${p.harga_jual.toLocaleString('id-ID')})</option>`;
+            });
+
+            row.innerHTML = `
+                <select class="produk-select" required onchange="updateHarga(${itemIndex})">
+                    ${productOptions}
+                </select>
+                <input type="number" class="qty-input" placeholder="Qty" min="1" value="1" onchange="calculateItem(${itemIndex})" required>
+                <input type="number" class="harga-input" placeholder="Harga" readonly style="background: #e9ecef;">
+                <input type="number" class="subtotal-input" placeholder="Subtotal" readonly style="background: #e9ecef; font-weight: bold;">
+                <button type="button" class="btn btn-danger" onclick="removeItemRow(this)">×</button>
+            `;
+
+            container.appendChild(row);
+            itemIndex++;
+        }
+
+        // Remove item row
+        function removeItemRow(btn) {
+            btn.parentElement.remove();
+            calculateTotal();
+        }
+
+        // Update harga when product selected
+        function updateHarga(index) {
+            const row = document.querySelector(`.item-row[data-index="${index}"]`);
+            const select = row.querySelector('.produk-select');
+            const option = select.options[select.selectedIndex];
+            const harga = option.dataset.harga || 0;
+            
+            row.querySelector('.harga-input').value = harga;
+            calculateItem(index);
+        }
+
+        // Calculate item subtotal
+        function calculateItem(index) {
+            const row = document.querySelector(`.item-row[data-index="${index}"]`);
+            const qty = parseInt(row.querySelector('.qty-input').value) || 0;
+            const harga = parseInt(row.querySelector('.harga-input').value) || 0;
+            const subtotal = qty * harga;
+            
+            row.querySelector('.subtotal-input').value = subtotal;
+            calculateTotal();
+        }
+
+        // Calculate total amount
+        function calculateTotal() {
+            const subtotals = document.querySelectorAll('.subtotal-input');
+            let total = 0;
+            subtotals.forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById('total_amount').value = total;
+        }
+
+        // Submit form
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const items = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                const produk_id = parseInt(row.querySelector('.produk-select').value);
+                const quantity = parseInt(row.querySelector('.qty-input').value);
+                const harga_satuan = parseInt(row.querySelector('.harga-input').value);
+                const subtotal = parseInt(row.querySelector('.subtotal-input').value);
+
+                if (produk_id) {
+                    items.push({ produk_id, quantity, harga_satuan, subtotal });
+                }
+            });
+
+            if (items.length === 0) {
+                showAlert('Minimal tambahkan 1 produk!', 'error');
+                return;
+            }
+
+            const data = {
+                nomor_transaksi: document.getElementById('nomor_transaksi').value,
+                outlet_id: parseInt(document.getElementById('outlet_id').value),
+                user_id: parseInt(document.getElementById('user_id').value),
+                tanggal_transaksi: document.getElementById('tanggal_transaksi').value,
+                metode_pembayaran: document.getElementById('metode_pembayaran').value,
+                total_amount: parseInt(document.getElementById('total_amount').value),
+                items: items
+            };
+
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/transactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('✅ Transaksi berhasil disimpan!', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    showAlert('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Gagal menyimpan transaksi: ' + error.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function logout() {
+            Auth.logout();
+        }
+    </script>
+</body>
+</html>
